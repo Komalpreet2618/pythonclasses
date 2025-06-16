@@ -21,4 +21,4 @@ else:
 str1=input("Enter str1:")
 str2=input("Enter str2:")
 print("concatenated string:",str2[0:1]+str1[1:len(str1)+1],str1[0:1]+str2[1:len(str2)+1])
-
+print("program complete")
