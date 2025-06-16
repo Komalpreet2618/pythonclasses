@@ -32,7 +32,7 @@ print(sum)
 
 #Question6
 print("-------------------------------------------")
-l5=['Dilrose','Maninder','Gaurav','Melvin','Sahil']
+l5=['Dilrose','Maninder','Gaurav','Melvin','raj']
 print(l5)
 a=input("Enter a friend's name to add: ")
 l5.append(a)
