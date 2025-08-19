@@ -3,10 +3,24 @@ import pandas as pd
 import plotly.express as px
 import io
 import os
+import pyodbc
 
 # Page configuration
 st.set_page_config(page_title="DASHGRADE", layout="wide")
 
+def connect_db():
+    try:
+        conn = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};'
+            'SERVER=GURMINDER-LAPTO;'
+            'DATABASE=Komal;'
+            'Trusted_Connection=yes;'
+        )
+        st.success("Connected Successfully")
+        return conn
+    except Exception as e:
+        st.error(f"Database connection failed: {e}")
+        return None
 # Custom CSS for sidebar menu button and background
 st.markdown("""
     <style>
@@ -48,29 +62,35 @@ if menu_clicked:
 
 # Sidebar
 if st.session_state.show_sidebar:
+    
     with st.sidebar:
-        st.header("📂 Navigation")
-        selected_section = st.radio("Go to:", [
-            "View Data",
-            "MST Comparison",
-            "Final Marks Comparison",
-            "Attendance Comparison",
-            "Leaderboard",
-            "Detain List",
-            "Apply Medical"
-        ])
+        opt= st.radio('Menu',options=['Upload','DataBase'])
+        if opt=='Upload':
+                st.header("📂 Navigation")
+                selected_section = st.radio("Go to:", [
+                    "View Data",
+                    "MST Comparison",
+                    "Final Marks Comparison",
+                    "Attendance Comparison",
+                    "Leaderboard",
+                    "Detain List",
+                    "Apply Medical"
+                ])
 
-        uploaded_file = st.file_uploader("Upload Student CSV", type=["csv"])
-        if uploaded_file:
-            df = pd.read_csv(uploaded_file)
-            required_cols = {"ID", "Name", "Class", "MST1", "MST2", "Final", "Attendance"}
-            if not required_cols.issubset(df.columns):
-                st.error("❌ CSV must include: ID, Name, Class, MST1, MST2, Final, Attendance")
-            else:
-                if "Medical" not in df.columns:
-                    df["Medical"] = "No"
-                st.session_state.df = df
-                df.to_csv("medical_data.csv", index=False)
+                uploaded_file = st.file_uploader("Upload Student CSV", type=["csv"])
+                if uploaded_file:
+                    df = pd.read_csv(uploaded_file)
+                    required_cols = {"ID", "Name", "Class", "MST1", "MST2", "Final", "Attendance"}
+                    if not required_cols.issubset(df.columns):
+                        st.error("❌ CSV must include: ID, Name, Class, MST1, MST2, Final, Attendance")
+                    else:
+                        if "Medical" not in df.columns:
+                            df["Medical"] = "No"
+                        st.session_state.df = df
+                        df.to_csv("medical_data.csv", index=False)
+        elif opt=='DataBase':
+                if st.button("Connect with Database"):
+                    st.write('Connection in Progress....')
 else:
     selected_section = None
 
@@ -184,5 +204,27 @@ if st.session_state.df is not None:
             file_name="updated_students.csv",
             mime="text/csv"
         )
+elif opt=='DataBase':
+    with st.form('key'):
+        col1, col2= st.columns(2)
+        with col1:
+            pass
+        with col2:
+            pass
+        
+        if st.form_submit_button("Submit"):
+            st.success("From Submitted")
+            conn= connect_db()
+            if conn:
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("INSERT INTO student (studentId , name, roll_no, class) VALUES (?, ?, ?, ?)", (2,'Komal',123,'Btech'))
+                    conn.commit()
+                    st.success("✅ Data inserted successfully!")
+                except Exception as e:
+                    st.error(f"Failed to insert: {e}")
+                finally:
+                    conn.close()
+
 else:
     st.info("📂 Please upload a student CSV file from the sidebar to continue.")
